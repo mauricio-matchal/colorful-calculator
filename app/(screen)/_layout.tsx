@@ -1,19 +1,255 @@
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import { BlurView } from 'expo-blur';
-import React, { useEffect, useState } from 'react';
-import { Animated, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { IconSymbol } from "@/components/ui/IconSymbol";
+import React, { useState } from "react";
+import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
 
+const SCREEN_WIDTH = Dimensions.get("window").width;
+const TOTAL_HORIZONTAL_PADDING = 28;
+const TOTAL_GAPS = 18;
+const BUTTONS_PER_ROW = 4;
+
+const buttonSize =
+  (SCREEN_WIDTH - TOTAL_HORIZONTAL_PADDING - TOTAL_GAPS) / BUTTONS_PER_ROW;
+
+const colors: {
+  [key: string]: { first: string; second: string; third: string };
+} = {
+  green: {
+    first: "#0ABF1F",
+    second: "#91E399",
+    third: "#D9F8DD",
+  },
+  blue: {
+    first: "#2095E9",
+    second: "#A1CCF7",
+    third: "#DDF1FF",
+  },
+  pink: {
+    first: "#E3388D",
+    second: "#F8A8C9",
+    third: "#FEE2F0",
+  },
+  red: {
+    first: "#E3384C",
+    second: "#F8A8AE",
+    third: "#FEE2E4",
+  },
+  orange: {
+    first: "#F48D18",
+    second: "#FBC498",
+    third: "#FFEDD6",
+  },
+};
 
 export default function TabLayout() {
-  const backgroundColor = '#FFF';
-  const grey = '#141415';
+  const [selectedColor, setSelectedColor] = useState("blue");
+  const [display, setDisplay] = useState("");
+
+  const NumberButton = ({ value }: { value: string }) => (
+    <TouchableOpacity
+      onPress={() => setDisplay(display + value)}
+      style={[styles.button, { backgroundColor: colors[selectedColor].third }]}
+    >
+      <ThemedText style={styles.buttonText}>{value}</ThemedText>
+    </TouchableOpacity>
+  );
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText>Julio é escroto</ThemedText>
-      <ThemedText>Julio é escroto</ThemedText>
+      <View style={styles.colorsContainer}>
+        <View style={styles.colorsContainer}>
+          {Object.keys(colors).map((colorKey) => (
+            <View
+              key={colorKey}
+              style={[
+                styles.colorCircle,
+                {
+                  backgroundColor: colors[colorKey].first,
+                  borderWidth: selectedColor === colorKey ? 4 : 0,
+                  borderColor: "#000",
+                },
+              ]}
+              onTouchEnd={() => setSelectedColor(colorKey)}
+            />
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.columns}>
+        <View
+          style={{
+            justifyContent: "space-between",
+            flexDirection: "row",
+            alignItems: "center",
+            paddingHorizontal: 12,
+            paddingBottom: 8,
+          }}
+        >
+          <ThemedText style={{ fontSize: 84, lineHeight: 80 * 1.2 }}>
+            {display || "0"}
+          </ThemedText>
+          <TouchableOpacity onPress={() => setDisplay(display.slice(0, -1))}>
+            <IconSymbol
+              name={"delete.left"}
+              size={40}
+              weight="medium"
+              color={display ? colors[selectedColor].first : "#ccc"}
+            ></IconSymbol>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.columns}>
+          <View style={styles.rows}>
+            <TouchableOpacity
+              onPress={() => setDisplay("")}
+              style={[
+                styles.button,
+                { backgroundColor: colors[selectedColor].second },
+              ]}
+            >
+              <ThemedText style={styles.buttonText}>
+                <IconSymbol
+                  name={"eraser.line.dashed"}
+                  color={"#000"}
+                  size={48}
+                  weight="regular"
+                />
+              </ThemedText>
+            </TouchableOpacity>
+            <View
+              style={[
+                styles.button,
+                { backgroundColor: colors[selectedColor].second },
+              ]}
+            >
+              <IconSymbol
+                name={"plusminus"}
+                color={"#000"}
+                size={32}
+                weight="regular"
+              />
+            </View>
+            <View
+              style={[
+                styles.button,
+                { backgroundColor: colors[selectedColor].second },
+              ]}
+            >
+              <IconSymbol
+                name={"percent"}
+                color={"#000"}
+                size={34}
+                weight="medium"
+              />
+            </View>
+            <View
+              style={[
+                styles.button,
+                { backgroundColor: colors[selectedColor].first },
+              ]}
+            >
+              <IconSymbol
+                name={"divide"}
+                color={"#fff"}
+                size={34}
+                weight="regular"
+              />
+            </View>
+          </View>
+
+          <View style={styles.rows}>
+            <NumberButton value="7" />
+            <NumberButton value="8" />
+            <NumberButton value="9" />
+            <View
+              style={[
+                styles.button,
+                { backgroundColor: colors[selectedColor].first },
+              ]}
+            >
+              <IconSymbol
+                name={"multiply"}
+                color={"#fff"}
+                size={30}
+                weight="regular"
+              />
+            </View>
+          </View>
+
+          <View style={styles.rows}>
+            <NumberButton value="4" />
+            <NumberButton value="5" />
+            <NumberButton value="6" />
+            <View
+              style={[
+                styles.button,
+                { backgroundColor: colors[selectedColor].first },
+              ]}
+            >
+              <IconSymbol
+                name={"minus"}
+                color={"#fff"}
+                size={32}
+                weight="regular"
+              />
+            </View>
+          </View>
+
+          <View style={styles.rows}>
+            <View style={[styles.columns, { flex: 3 }]}>
+              <View style={styles.rows}>
+                <NumberButton value="1" />
+                <NumberButton value="2" />
+                <NumberButton value="3" />
+              </View>
+              <View style={styles.rows}>
+                <View
+                  style={[
+                    styles.button,
+                    { backgroundColor: colors[selectedColor].third },
+                  ]}
+                >
+                  <ThemedText style={styles.buttonText}>0</ThemedText>
+                </View>
+                <View
+                  style={[
+                    styles.button,
+                    { backgroundColor: colors[selectedColor].third },
+                  ]}
+                >
+                  <ThemedText style={styles.buttonText}>,</ThemedText>
+                </View>
+                <View
+                  style={[
+                    styles.button,
+                    { backgroundColor: colors[selectedColor].first },
+                  ]}
+                >
+                  <IconSymbol
+                    name={"equal"}
+                    color={"#fff"}
+                    size={30}
+                    weight="regular"
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={[
+                styles.buttonTall,
+                { backgroundColor: colors[selectedColor].first },
+              ]}
+            >
+              <IconSymbol
+                name={"plus"}
+                color={"#fff"}
+                size={36}
+                weight="regular"
+              />
+            </View>
+          </View>
+        </View>
+      </View>
     </ThemedView>
   );
 }
@@ -21,8 +257,48 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    width: '100%',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end'
+    width: "100%",
+    justifyContent: "space-between",
+    paddingTop: 70,
+    paddingBottom: 50,
+    paddingHorizontal: 14,
+    backgroundColor: "#fff",
+  },
+  colorsContainer: {
+    flexDirection: "row",
+    gap: 14,
+    marginHorizontal: 6,
+    alignSelf: "flex-end",
+  },
+  colorCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 16,
+  },
+  button: {
+    flex: 1,
+    aspectRatio: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 999,
+  },
+  buttonTall: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 999,
+  },
+  buttonText: {
+    fontSize: 36,
+    lineHeight: 36 * 1.2,
+    color: "#000",
+  },
+  rows: {
+    flexDirection: "row",
+    gap: 6,
+  },
+  columns: {
+    flexDirection: "column",
+    gap: 6,
   },
 });
