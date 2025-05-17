@@ -25,6 +25,11 @@ const colors: {
     second: "#A1CCF7",
     third: "#DDF1FF",
   },
+  purple: {
+    first: "#8D38E3",
+    second: "#C8A9F4",
+    third: "#F0E1FE",
+  },
   pink: {
     first: "#E3388D",
     second: "#F8A8C9",
@@ -45,6 +50,10 @@ const colors: {
 export default function TabLayout() {
   const [selectedColor, setSelectedColor] = useState("blue");
   const [display, setDisplay] = useState("");
+  const [storedValue, setStoredValue] = useState<number | null>(null);
+  const [operation, setOperation] = useState<null | "+" | "-" | "*" | "/">(
+    null
+  );
 
   const NumberButton = ({ value }: { value: string }) => (
     <TouchableOpacity
@@ -86,10 +95,25 @@ export default function TabLayout() {
             paddingBottom: 8,
           }}
         >
-          <ThemedText style={{ fontSize: 84, lineHeight: 80 * 1.2 }}>
+          <ThemedText
+            style={
+              display === "Can't divide by 0"
+                ? { fontSize: 45, lineHeight: 80 * 1.2 }
+                : { fontSize: 84, lineHeight: 80 * 1.2 }
+            }
+          >
             {display || "0"}
           </ThemedText>
-          <TouchableOpacity onPress={() => setDisplay(display.slice(0, -1))}>
+          <TouchableOpacity
+            style={display ? {} : { pointerEvents: "none" }}
+            onPress={() => {
+              if (display === "Can't divide by 0") {
+                setDisplay("");
+                return;
+              }
+              setDisplay(display.slice(0, -1));
+            }}
+          >
             <IconSymbol
               name={"delete.left"}
               size={40}
@@ -101,7 +125,11 @@ export default function TabLayout() {
         <View style={styles.columns}>
           <View style={styles.rows}>
             <TouchableOpacity
-              onPress={() => setDisplay("")}
+              onPress={() => {
+                setDisplay("");
+                setStoredValue(null);
+                setOperation(null);
+              }}
               style={[
                 styles.button,
                 { backgroundColor: colors[selectedColor].second },
@@ -142,7 +170,13 @@ export default function TabLayout() {
                 weight="medium"
               />
             </View>
-            <View
+            <TouchableOpacity
+              onPress={() => {
+                if (display !== "") {
+                  setOperation("/");
+                  setDisplay(display + "÷");
+                }
+              }}
               style={[
                 styles.button,
                 { backgroundColor: colors[selectedColor].first },
@@ -154,14 +188,20 @@ export default function TabLayout() {
                 size={34}
                 weight="regular"
               />
-            </View>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.rows}>
             <NumberButton value="7" />
             <NumberButton value="8" />
             <NumberButton value="9" />
-            <View
+            <TouchableOpacity
+              onPress={() => {
+                if (display !== "") {
+                  setOperation("*");
+                  setDisplay(display + "×");
+                }
+              }}
               style={[
                 styles.button,
                 { backgroundColor: colors[selectedColor].first },
@@ -173,14 +213,20 @@ export default function TabLayout() {
                 size={30}
                 weight="regular"
               />
-            </View>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.rows}>
             <NumberButton value="4" />
             <NumberButton value="5" />
             <NumberButton value="6" />
-            <View
+            <TouchableOpacity
+              onPress={() => {
+                if (display !== "") {
+                  setOperation("-");
+                  setDisplay(display + "-");
+                }
+              }}
               style={[
                 styles.button,
                 { backgroundColor: colors[selectedColor].first },
@@ -192,7 +238,7 @@ export default function TabLayout() {
                 size={32}
                 weight="regular"
               />
-            </View>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.rows}>
@@ -203,14 +249,7 @@ export default function TabLayout() {
                 <NumberButton value="3" />
               </View>
               <View style={styles.rows}>
-                <View
-                  style={[
-                    styles.button,
-                    { backgroundColor: colors[selectedColor].third },
-                  ]}
-                >
-                  <ThemedText style={styles.buttonText}>0</ThemedText>
-                </View>
+                <NumberButton value="0" />
                 <View
                   style={[
                     styles.button,
@@ -219,7 +258,25 @@ export default function TabLayout() {
                 >
                   <ThemedText style={styles.buttonText}>,</ThemedText>
                 </View>
-                <View
+                <TouchableOpacity
+                  onPress={() => {
+                    try {
+                      const sanitized = display
+                        .replace(/×/g, "*")
+                        .replace(/÷/g, "/")
+                        .replace(/[^-()\d/*+.]/g, ""); // remove any unsafe chars
+                      const result = eval(sanitized);
+                      if (result === Infinity) {
+                        setDisplay("Can't divide by 0");
+                        return;
+                      }
+                      setDisplay(result.toString());
+                      setStoredValue(null);
+                      setOperation(null);
+                    } catch (error) {
+                      setDisplay("Error");
+                    }
+                  }}
                   style={[
                     styles.button,
                     { backgroundColor: colors[selectedColor].first },
@@ -231,10 +288,16 @@ export default function TabLayout() {
                     size={30}
                     weight="regular"
                   />
-                </View>
+                </TouchableOpacity>
               </View>
             </View>
-            <View
+            <TouchableOpacity
+              onPress={() => {
+                if (display !== "") {
+                  setOperation("+");
+                  setDisplay(display + "+");
+                }
+              }}
               style={[
                 styles.buttonTall,
                 { backgroundColor: colors[selectedColor].first },
@@ -246,7 +309,7 @@ export default function TabLayout() {
                 size={36}
                 weight="regular"
               />
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
