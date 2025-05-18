@@ -15,6 +15,16 @@ const buttonSize =
 const colors: {
   [key: string]: { first: string; second: string; third: string };
 } = {
+  red: {
+    first: "#E3384C",
+    second: "#F8A8AE",
+    third: "#FEE2E4",
+  },
+  orange: {
+    first: "#F48D18",
+    second: "#FBC498",
+    third: "#FFEDD6",
+  },
   green: {
     first: "#0ABF1F",
     second: "#91E399",
@@ -35,16 +45,6 @@ const colors: {
     second: "#F8A8C9",
     third: "#FEE2F0",
   },
-  red: {
-    first: "#E3384C",
-    second: "#F8A8AE",
-    third: "#FEE2E4",
-  },
-  orange: {
-    first: "#F48D18",
-    second: "#FBC498",
-    third: "#FFEDD6",
-  },
 };
 
 export default function TabLayout() {
@@ -54,10 +54,43 @@ export default function TabLayout() {
   const [operation, setOperation] = useState<null | "+" | "-" | "*" | "/">(
     null
   );
+  const [displayHistory, setDisplayHistory] = useState("");
+
+  const handleOperation = (value: "+" | "-" | "*" | "/") => {
+    if (display === "") return;
+
+    const operators = ["+", "-", "*", "/", "×", "÷"];
+    let symbol = value === "*" ? "×" : value === "/" ? "÷" : value;
+
+    const lastChar = display.slice(-1);
+    const secondLastChar = display.slice(-2, -1);
+
+    const isLastCharOp = operators.includes(lastChar);
+    const isSecondLastCharOp = operators.includes(secondLastChar);
+
+    // Se o último caractere for um operador e o penúltimo também for um operador, ele não deve fazer nada, ex.: "1×-+3"
+    if (isSecondLastCharOp && isLastCharOp) return;
+    // Se o último caractere for um operador e o penúltimo não for um operador
+    if (isLastCharOp) {
+      const allowMinusAfterMulDiv =
+        (lastChar === "×" || lastChar === "÷") && value === "-";
+
+      setDisplay(
+        // Ele permite o operador de subtração após multiplicação ou divisão, ou substitui o último operador
+        allowMinusAfterMulDiv ? display + "-" : display.slice(0, -1) + symbol
+      );
+    } else {
+      // Se o último caractere for um número, ele deve adicionar o operador
+      setDisplay(display + symbol);
+    }
+
+    setDisplayHistory("");
+    setOperation(value);
+  };
 
   const NumberButton = ({ value }: { value: string }) => (
     <TouchableOpacity
-      onPress={() => setDisplay(display + value)}
+      onPress={() => { setDisplay(display + value); setDisplayHistory(""); }}
       style={[styles.button, { backgroundColor: colors[selectedColor].third }]}
     >
       <ThemedText style={styles.buttonText}>{value}</ThemedText>
@@ -86,6 +119,16 @@ export default function TabLayout() {
       </View>
 
       <View style={styles.columns}>
+        <ThemedText
+          style={{
+            fontSize: 40,
+            lineHeight: 40 * 1.2,
+            color: "rgba(0, 0, 0, 0.4)",
+            paddingHorizontal: 20,
+            paddingBottom: 0,
+          }}>
+          {displayHistory}
+        </ThemedText>
         <View
           style={{
             justifyContent: "space-between",
@@ -127,6 +170,7 @@ export default function TabLayout() {
             <TouchableOpacity
               onPress={() => {
                 setDisplay("");
+                setDisplayHistory("");
                 setStoredValue(null);
                 setOperation(null);
               }}
@@ -171,12 +215,7 @@ export default function TabLayout() {
               />
             </View>
             <TouchableOpacity
-              onPress={() => {
-                if (display !== "") {
-                  setOperation("/");
-                  setDisplay(display + "÷");
-                }
-              }}
+              onPress={() => handleOperation("/")}
               style={[
                 styles.button,
                 { backgroundColor: colors[selectedColor].first },
@@ -196,12 +235,7 @@ export default function TabLayout() {
             <NumberButton value="8" />
             <NumberButton value="9" />
             <TouchableOpacity
-              onPress={() => {
-                if (display !== "") {
-                  setOperation("*");
-                  setDisplay(display + "×");
-                }
-              }}
+              onPress={() => handleOperation("*")}
               style={[
                 styles.button,
                 { backgroundColor: colors[selectedColor].first },
@@ -221,12 +255,7 @@ export default function TabLayout() {
             <NumberButton value="5" />
             <NumberButton value="6" />
             <TouchableOpacity
-              onPress={() => {
-                if (display !== "") {
-                  setOperation("-");
-                  setDisplay(display + "-");
-                }
-              }}
+              onPress={() => handleOperation("-")}
               style={[
                 styles.button,
                 { backgroundColor: colors[selectedColor].first },
@@ -235,7 +264,7 @@ export default function TabLayout() {
               <IconSymbol
                 name={"minus"}
                 color={"#fff"}
-                size={32}
+                size={30}
                 weight="regular"
               />
             </TouchableOpacity>
@@ -270,6 +299,7 @@ export default function TabLayout() {
                         setDisplay("Can't divide by 0");
                         return;
                       }
+                      setDisplayHistory(display);
                       setDisplay(result.toString());
                       setStoredValue(null);
                       setOperation(null);
@@ -292,12 +322,7 @@ export default function TabLayout() {
               </View>
             </View>
             <TouchableOpacity
-              onPress={() => {
-                if (display !== "") {
-                  setOperation("+");
-                  setDisplay(display + "+");
-                }
-              }}
+              onPress={() => handleOperation("+")}
               style={[
                 styles.buttonTall,
                 { backgroundColor: colors[selectedColor].first },
